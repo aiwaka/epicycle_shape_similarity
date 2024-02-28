@@ -43,7 +43,7 @@ pub fn model(app: &App) -> Model {
 
 pub fn update(_app: &App, model: &mut Model, _update: Update) {
     model.start = model.end;
-    let angle = random_range(0.0, 2.0 * PI);
+    let angle = random_range(0.0, TAU);
     let vec = vec2(angle.cos(), angle.sin()) * model.step_len;
     model.end = model.start + vec;
     model.fg_color = model.fg_color.shift_hue(0.5);
@@ -54,18 +54,22 @@ fn draw_circle<C>(draw: &Draw, center: Vec2, radius: f32, fill: bool, color: C)
 where
     C: IntoLinSrgba<ColorScalar>,
 {
-    let [center_x, center_y] = center.to_array();
-    let points = (0..=360).step_by(2).map(|i| {
-        let radian = deg_to_rad(i as f32);
-        let x = radian.sin() * radius + center_x;
-        let y = radian.cos() * radius + center_y;
-        pt2(x, y)
-    });
+    let skelton = draw.ellipse().radius(radius).xy(center);
     if fill {
-        draw.polygon().points(points).color(color);
+        skelton.color(color);
     } else {
-        draw.polyline().weight(2.0).points(points).color(color);
+        skelton.stroke(color).stroke_weight(2.0).no_fill();
     }
+}
+
+/// 位相を示すバー付きの円
+fn draw_phase_circle(draw: &Draw, center: Vec2, radius: f32, phase: f32) {
+    const CIRCLE_COLOR: Srgb<u8> = GRAY;
+    draw_circle(draw, center, radius, false, CIRCLE_COLOR);
+    let end_point = radius * pt2(phase.cos(), phase.sin()) + center;
+    draw.ellipse().color(CIRCLE_COLOR).xy(center).radius(5.0);
+    draw.ellipse().color(CIRCLE_COLOR).xy(end_point).radius(5.0);
+    draw.line().color(CIRCLE_COLOR).start(center).end(end_point);
 }
 
 pub fn view(app: &App, model: &Model, frame: Frame) {
@@ -81,6 +85,12 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
     for c in model.fft_result.iter() {
         draw_circle(&draw, *c, 2.0, true, GRAY);
     }
+    draw_phase_circle(
+        &draw,
+        Vec2::ZERO,
+        200.0,
+        app.duration.since_start.as_secs_f32(),
+    );
     // let radius = 150.0;
     // let sin = app.time.sin();
     // let sin2 = (app.time / 4.0).sin();

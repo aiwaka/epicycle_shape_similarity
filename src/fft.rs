@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::f64::consts::TAU;
 
 use num_traits::Zero;
 use rustfft::{num_complex::Complex, FftPlanner};
@@ -13,7 +13,7 @@ pub fn create_shape() -> Vec<Complex<f64>> {
     let mut points = vec![Complex::zero(); NUM_SAMPLES];
     // 時間列をもとにテスト波形を作成
     for (idx, target) in points.iter_mut().enumerate() {
-        let phase = 2.0 * PI * idx as f64 / (NUM_SAMPLES - 1) as f64;
+        let phase = TAU * idx as f64 / (NUM_SAMPLES - 1) as f64;
         let re = phase.cos();
         let im = phase.sin();
 
@@ -73,7 +73,7 @@ pub fn test_sound_like_freq_fft() {
         .collect::<Vec<f64>>();
     // 時間列をもとにテスト波形を作成
     for (step, target) in buffer.iter_mut().enumerate() {
-        let re = (2.0 * PI * hz * time_seq[step]).sin();
+        let re = (TAU * hz * time_seq[step]).sin();
         *target = Complex::new(re, 0.0);
     }
 
