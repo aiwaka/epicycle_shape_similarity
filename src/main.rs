@@ -3,7 +3,6 @@ mod graph;
 mod io;
 
 use graph::model::{model, update};
-use nannou::prelude::*;
 
 fn main() {
     nannou::app(model).update(update).run();

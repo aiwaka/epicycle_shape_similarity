@@ -8,11 +8,7 @@ use crate::fft::{create_shape, fft_points};
 
 pub struct Model {
     _window: window::Id,
-    bg_color: Srgb<u8>,
     fg_color: Hsl,
-    step_len: f32,
-    start: Point2,
-    end: Point2,
     shape_points: Vec<Point2>,
     fft_result: Vec<Point2>,
 }
@@ -27,25 +23,21 @@ pub fn model(app: &App) -> Model {
         .collect();
     let fft_result_vec2 = fft_result
         .iter()
-        .map(|c| 200.0 * pt2(c.re as f32, c.im as f32))
+        .map(|c| pt2(c.re as f32, c.im as f32))
         .collect::<Vec<Vec2>>();
     Model {
         _window,
-        bg_color: WHITE,
         fg_color: Hsl::new(0.0, 1.0, 0.3),
-        step_len: 10.0,
-        start: Point2::ZERO,
-        end: Point2::ZERO,
         shape_points: shape_points_vec2,
         fft_result: fft_result_vec2,
     }
 }
 
 pub fn update(_app: &App, model: &mut Model, _update: Update) {
-    model.start = model.end;
-    let angle = random_range(0.0, TAU);
-    let vec = vec2(angle.cos(), angle.sin()) * model.step_len;
-    model.end = model.start + vec;
+    // model.start = model.end;
+    // let angle = random_range(0.0, TAU);
+    // let vec = vec2(angle.cos(), angle.sin()) * model.step_len;
+    // model.end = model.start + vec;
     model.fg_color = model.fg_color.shift_hue(0.5);
 }
 
@@ -78,10 +70,11 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
     // if app.elapsed_frames() == 0 {
     //     draw.background().color(model.bg_color);
     // }
-    draw.background().color(model.bg_color);
-    for c in model.shape_points.iter() {
-        draw_circle(&draw, *c, 2.0, true, STEELBLUE);
-    }
+    draw.background().color(WHITE);
+    draw.polyline()
+        .weight(2.0)
+        .color(STEELBLUE)
+        .points(model.shape_points.clone());
     for c in model.fft_result.iter() {
         draw_circle(&draw, *c, 2.0, true, GRAY);
     }

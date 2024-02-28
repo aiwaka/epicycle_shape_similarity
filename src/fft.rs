@@ -3,8 +3,6 @@ use std::f64::consts::TAU;
 use num_traits::Zero;
 use rustfft::{num_complex::Complex, FftPlanner};
 
-use crate::io::output_sequences_with_x;
-
 /// 二次元図形を複素数で表現して与える。
 /// 系列の長さは2の冪であるものとする。
 pub fn create_shape() -> Vec<Complex<f64>> {
@@ -34,7 +32,7 @@ pub fn create_shape() -> Vec<Complex<f64>> {
                 Complex::new((FRAC_PI_2 - phase).tan(), 1.0)
             } else {
                 Complex::new(-1.0, -phase.tan())
-            } * 50.0;
+            } * 100.0;
         }
     }
     points
@@ -47,15 +45,18 @@ pub fn fft_points(points: &[Complex<f64>]) -> Vec<Complex<f64>> {
     let fft = planner.plan_fft_forward(points_num);
     let mut buffer = points.to_owned();
     fft.process(&mut buffer);
-    for v in buffer.iter_mut() {
-        *v /= points_num as f64;
-    }
+    // 正規化を適用しない。する場合はこのコメントを外す
+    // for v in buffer.iter_mut() {
+    //     *v /= points_num as f64;
+    // }
     buffer
 }
 
 /// 音っぽい周波数でFFTして周波数分布を見るテスト
 #[test]
 pub fn test_sound_like_freq_fft() {
+    use crate::io::output_sequences_with_x;
+
     const NUM_SAMPLES: usize = 4096;
     const SAMPLE_RATE: f64 = 44100.0;
 
