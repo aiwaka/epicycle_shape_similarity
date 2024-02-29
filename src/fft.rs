@@ -1,41 +1,13 @@
-use std::f64::consts::TAU;
-
-use num_traits::Zero;
 use rustfft::{num_complex::Complex, FftPlanner};
+
+#[allow(unused)]
+use crate::shapes::{rectangle, simple_circle, ShapePoints};
 
 /// 二次元図形を複素数で表現して与える。
 /// 系列の長さは2の冪であるものとする。
-pub fn create_shape() -> Vec<Complex<f64>> {
-    const NUM_SAMPLES: usize = 256;
-
-    let mut points = vec![Complex::zero(); NUM_SAMPLES];
-    // 時間列をもとにテスト波形を作成
-    for (idx, target) in points.iter_mut().enumerate() {
-        let phase = TAU * idx as f64 / (NUM_SAMPLES - 1) as f64;
-        let re = phase.cos();
-        let im = phase.sin();
-
-        {
-            // 円を作る
-            *target = Complex::new(re, im);
-        }
-        {
-            use std::f64::consts::FRAC_PI_2;
-            // 矩形を作る
-            *target = if re > im {
-                if re > -im {
-                    Complex::new(1.0, phase.tan())
-                } else {
-                    Complex::new((FRAC_PI_2 + phase).tan(), -1.0)
-                }
-            } else if re > -im {
-                Complex::new((FRAC_PI_2 - phase).tan(), 1.0)
-            } else {
-                Complex::new(-1.0, -phase.tan())
-            } * 100.0;
-        }
-    }
-    points
+pub fn create_shape() -> ShapePoints {
+    rectangle()
+    // simple_circle()
 }
 
 /// 座標点列を複素関数と解釈してFFTを適用する。
@@ -55,6 +27,10 @@ pub fn fft_points(points: &[Complex<f64>]) -> Vec<Complex<f64>> {
 /// 音っぽい周波数でFFTして周波数分布を見るテスト
 #[test]
 pub fn test_sound_like_freq_fft() {
+    use std::f64::consts::TAU;
+
+    use num_traits::Zero;
+
     use crate::io::output_sequences_with_x;
 
     const NUM_SAMPLES: usize = 4096;

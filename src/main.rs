@@ -1,6 +1,7 @@
 mod fft;
 mod graph;
 mod io;
+mod shapes;
 
 use graph::model::{model, update};
 

@@ -24,8 +24,8 @@ fn draw_phase_circle(draw: &Draw, center: Vec2, radius: f32, phase: f32) {
     const CIRCLE_COLOR: Srgb<u8> = GRAY;
     draw_circle(draw, center, radius, false, CIRCLE_COLOR);
     let end_point = radius * pt2(phase.cos(), phase.sin()) + center;
-    draw.ellipse().color(BLACK).xy(center).radius(5.0);
-    draw.ellipse().color(CIRCLE_COLOR).xy(end_point).radius(5.0);
+    draw.ellipse().color(GRAY).xy(center).radius(3.0);
+    draw.ellipse().color(CIRCLE_COLOR).xy(end_point).radius(3.0);
     draw.line().color(CIRCLE_COLOR).start(center).end(end_point);
 }
 
@@ -85,7 +85,7 @@ pub fn model(app: &App) -> Model {
 pub fn update(_app: &App, model: &mut Model, _update: Update) {
     // model.line_start = model.line_end;
     // 系の位相を更新
-    model.phase += TAU * 1.0 / model.seq_len as f32;
+    model.phase += TAU / model.seq_len as f32;
     let mut circle_centers: Vec<Vec2> = vec![];
     let mut center = Vec2::ZERO;
     for (
