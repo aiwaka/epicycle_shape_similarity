@@ -56,3 +56,46 @@ fn test_get_muni_name() {
         assert_eq!(&name, answer);
     }
 }
+
+#[test]
+fn test_convert_to_shape() {
+    use crate::municipalities::serde_models::{FeatureGeometry, GeoFeature};
+    use crate::municipalities::utils::convert_to_shape;
+
+    let coordinates = vec![
+        vec![0.0, 0.0],
+        vec![0.5, 0.0],
+        vec![1.0, 0.0],
+        vec![0.5, 0.5],
+        vec![0.0, 1.0],
+        vec![0.0, 0.5],
+        vec![0.0, 0.0],
+    ];
+    let feature = GeoFeature {
+        _type: "".to_string(),
+        properties: HashMap::<String, Option<String>>::new(),
+        geometry: FeatureGeometry {
+            _type: "".to_string(),
+            coordinates: vec![coordinates],
+        },
+    };
+    let shape = convert_to_shape(&feature, 4);
+    println!("truncation: {:?}", shape);
+
+    let coordinates = vec![
+        vec![0.0, 0.0],
+        vec![1.0, 0.0],
+        vec![0.0, 1.0],
+        vec![0.0, 0.0],
+    ];
+    let feature = GeoFeature {
+        _type: "".to_string(),
+        properties: HashMap::<String, Option<String>>::new(),
+        geometry: FeatureGeometry {
+            _type: "".to_string(),
+            coordinates: vec![coordinates],
+        },
+    };
+    let shape = convert_to_shape(&feature, 11);
+    println!("insertion: {:?}", shape);
+}

@@ -22,7 +22,7 @@ pub struct FeatureGeometry {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Feature {
+pub struct GeoFeature {
     #[serde(rename = "type")]
     pub _type: String,
     pub properties: HashMap<String, Option<String>>,
@@ -35,5 +35,5 @@ pub struct GeoJson {
     pub _type: String,
     pub name: String,
     pub crs: Crs,
-    pub features: Vec<Feature>,
+    pub features: Vec<GeoFeature>,
 }
