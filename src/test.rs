@@ -8,7 +8,7 @@ fn test_read_muni_data() {
         io::read_municipalities_boundary_data, municipalities::utils::geo_feature_props_to_array,
     };
 
-    let json_obj = read_municipalities_boundary_data().unwrap();
+    let json_obj = read_municipalities_boundary_data("兵庫県").unwrap();
     // for feat in json_obj.features.iter() {
     //     println!("{:?}", feat.geometry.coordinates[0].len())
     // }
@@ -28,6 +28,12 @@ fn test_get_muni_name() {
                 "N03_001" => Some("京都府"), "N03_002" => None, "N03_003" => Some("与謝郡"), "N03_004" => Some("伊根町"), "N03_007" => Some("26463")
             ],
             "京都府与謝郡伊根町",
+        ),
+        (
+            hashmap![
+                "N03_001" => Some("兵庫県"), "N03_002"=> None, "N03_003"=> None, "N03_004"=> Some("姫路市"), "N03_007"=> Some("28201")
+            ],
+            "兵庫県姫路市",
         ),
         (
             hashmap![

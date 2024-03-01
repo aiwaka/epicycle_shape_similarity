@@ -6,7 +6,7 @@ use nannou::{
 
 use crate::fft::{create_shape, fft_points};
 
-const LOW_PASS_RATE: f32 = 0.1;
+const LOW_PASS_RATE: f32 = 1.0;
 
 /// 円を描く
 fn draw_circle<C>(draw: &Draw, center: Vec2, radius: f32, fill: bool, color: C)
@@ -121,7 +121,7 @@ pub fn update(_app: &App, model: &mut Model, _update: Update) {
     }
     model.circle_centers = circle_centers;
     model.actual_orbit.push(center);
-    model.fg_color = model.fg_color.shift_hue(10.0);
+    // model.fg_color = model.fg_color.shift_hue(10.0);
 }
 
 pub fn view(app: &App, model: &Model, frame: Frame) {

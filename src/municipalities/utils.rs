@@ -48,6 +48,11 @@ pub fn props_array_to_name(array: &[Option<String>; 7]) -> String {
         })
 }
 
+/// GISデータのプロパティから自治体名を返す。
+pub fn geo_feature_props_to_name(props: &HashMap<String, Option<String>>) -> String {
+    props_array_to_name(&geo_feature_props_to_array(props).unwrap())
+}
+
 // /// Featureの列から、`properties`が指定された自治体コードに一致するものを取得する。
 // /// 見つからない場合は`None`を返す。
 // pub fn get_obj_has_specified_code(muni_code: String) -> Option<GeoFeature> {}
@@ -64,6 +69,7 @@ pub fn convert_to_shape(geo_feature: &GeoFeature, result_points_num: usize) -> S
     // なぜか元データにおいて一回分Vec階層が多いので[0]を取得する必要がある
     let coordinates = &geo_feature.geometry.coordinates[0];
     let coord_data_num = coordinates.len();
+    println!("raw_data_num: {}", coord_data_num);
     if coord_data_num >= result_points_num {
         // 間引く場合、最初と最後を保ちつつなるべく等間隔に間引く
         (0..result_points_num)

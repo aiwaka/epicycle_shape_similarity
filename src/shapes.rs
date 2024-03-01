@@ -1,10 +1,11 @@
 use std::f64::consts::TAU;
 
+use regex::Regex;
 use rustfft::num_complex::Complex;
 
 use crate::{
     io::read_municipalities_boundary_data,
-    municipalities::utils::{convert_to_shape, normalize_shape},
+    municipalities::utils::{convert_to_shape, geo_feature_props_to_name, normalize_shape},
 };
 
 pub type ShapePoints = Vec<Complex<f64>>;
@@ -50,9 +51,28 @@ pub fn flower() -> ShapePoints {
     points
 }
 
-pub fn municipality_shape() -> ShapePoints {
-    let json_data = read_municipalities_boundary_data().unwrap();
+/// 自治体名をGISデータ内の完全名で与え、境界形状点列データを取得する。
+pub fn municipality_shape(muni_name: &str) -> ShapePoints {
+    // 都道府県名と、そのファイル内の欲しい境界データ番号を指定
+    // 向日市
+    // let (prefecture_name, feature_id) = ("京都府", 354);
+    // 城陽市
+    // let (prefecture_name, feature_id) = ("京都府", 353);
     // 姫路市
-    let shape = convert_to_shape(&json_data.features[194], 700);
+    // let (prefecture_name, feature_id) = ("兵庫県", 194);
+
+    // NOTE: 都道府県名一覧データがあるのでそちらを使っても良さそう
+    let re = Regex::new(r"([^\x00-\x7F]{2,3}県|..府|東京都|北海道)").unwrap();
+    let prefecture_name = re.captures(muni_name).unwrap().get(0).unwrap().as_str();
+
+    let json_data = read_municipalities_boundary_data(prefecture_name).unwrap();
+    // 指定された自治体を示すpropertiesを持つfeatureの中で要素数が最も多いものを探す
+    let geo_feature = json_data
+        .features
+        .iter()
+        .filter(|feat| geo_feature_props_to_name(&feat.properties) == muni_name)
+        .max_by_key(|x| x.geometry.coordinates.len())
+        .unwrap();
+    let shape = convert_to_shape(geo_feature, 512);
     normalize_shape(shape)
 }
