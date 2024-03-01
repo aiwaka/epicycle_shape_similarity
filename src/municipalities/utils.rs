@@ -87,18 +87,17 @@ pub fn convert_to_shape(geo_feature: &GeoFeature, result_points_num: usize) -> S
     // なぜか元データにおいて一回分Vec階層が多いので[0]を取得する必要がある
     let coordinates = &geo_feature.geometry.coordinates[0];
     let coord_data_num = coordinates.len();
-    let results = if coord_data_num >= result_points_num {
-        // 間引く場合
-        let mut results = vec![];
-        for idx in 0..result_points_num {
-            let pick_idx = (coord_data_num - 1) * idx / (result_points_num - 1);
-            let p_vec = &coordinates[pick_idx];
-            let c = Complex::new(p_vec[0], p_vec[1]);
-            results.push(c);
-        }
-        results
+    if coord_data_num >= result_points_num {
+        // 間引く場合、最初と最後を保ちつつなるべく等間隔に間引く
+        (0..result_points_num)
+            .map(|idx| {
+                let pick_idx = (coord_data_num - 1) * idx / (result_points_num - 1);
+                let p_vec = &coordinates[pick_idx];
+                Complex::new(p_vec[0], p_vec[1])
+            })
+            .collect::<Vec<_>>()
     } else {
-        // 挿入する場合
+        // 挿入する場合、元の点列を保ちつつ適当な数の点を挿入していく
         let points = coordinates
             .iter()
             .map(|p_vec| Complex::new(p_vec[0], p_vec[1]))
@@ -118,6 +117,5 @@ pub fn convert_to_shape(geo_feature: &GeoFeature, result_points_num: usize) -> S
             prev_p = *current_p;
         }
         results
-    };
-    results
+    }
 }
