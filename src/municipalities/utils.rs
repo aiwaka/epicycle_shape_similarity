@@ -119,3 +119,14 @@ pub fn convert_to_shape(geo_feature: &GeoFeature, result_points_num: usize) -> S
         results
     }
 }
+
+/// 重心を原点とし、半径を適当な大きさに調整する。
+pub fn normalize_shape(shape: ShapePoints) -> ShapePoints {
+    let center = shape.iter().sum::<Complex<_>>() / shape.len() as f64;
+    let average_norm_from_center =
+        shape.iter().fold(0.0, |acc, c| acc + (c - center).norm()) / shape.len() as f64;
+    shape
+        .iter()
+        .map(|p| (p - center) / average_norm_from_center * 200.0)
+        .collect()
+}

@@ -2,6 +2,11 @@ use std::f64::consts::TAU;
 
 use rustfft::num_complex::Complex;
 
+use crate::{
+    io::read_municipalities_boundary_data,
+    municipalities::utils::{convert_to_shape, normalize_shape},
+};
+
 pub type ShapePoints = Vec<Complex<f64>>;
 const NUM_SAMPLES: usize = 128;
 
@@ -43,4 +48,11 @@ pub fn flower() -> ShapePoints {
         points.push(c)
     }
     points
+}
+
+pub fn municipality_shape() -> ShapePoints {
+    let json_data = read_municipalities_boundary_data().unwrap();
+    // 姫路市
+    let shape = convert_to_shape(&json_data.features[194], 700);
+    normalize_shape(shape)
 }

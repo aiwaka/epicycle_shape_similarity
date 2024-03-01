@@ -1,14 +1,17 @@
 use rustfft::{num_complex::Complex, FftPlanner};
 
 #[allow(unused)]
+use crate::shapes::municipality_shape;
+#[allow(unused)]
 use crate::shapes::{flower, rectangle, simple_circle, ShapePoints};
 
 /// 二次元図形を複素数で表現して与える。
 /// 系列の長さは2の冪であるものとする。
 pub fn create_shape() -> ShapePoints {
     // rectangle()
-    simple_circle()
+    // simple_circle()
     // flower()
+    municipality_shape()
 }
 
 /// 座標点列を複素関数と解釈してFFTを適用する。
