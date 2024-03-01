@@ -6,7 +6,7 @@ use nannou::{
 
 use crate::fft::{create_shape, fft_points};
 
-const LOW_PASS_RATE: f32 = 1.0;
+const LOW_PASS_RATE: f32 = 0.5;
 
 /// 円を描く
 fn draw_circle<C>(draw: &Draw, center: Vec2, radius: f32, fill: bool, color: C)
@@ -55,6 +55,8 @@ pub struct Model {
     phase: f32,
     // 実際に円により描かれる線を表す点列
     actual_orbit: Vec<Vec2>,
+    // 一周したフラグ
+    round_once: bool,
 }
 
 pub fn model(app: &App) -> Model {
@@ -100,28 +102,35 @@ pub fn model(app: &App) -> Model {
         circle_centers,
         phase: 0.0,
         actual_orbit: vec![],
+        round_once: false,
     }
 }
 
 pub fn update(_app: &App, model: &mut Model, _update: Update) {
-    // 系の位相を更新
-    model.phase += TAU / model.raw_seq_len as f32;
-    let mut circle_centers: Vec<Vec2> = vec![];
-    let mut center = Vec2::ZERO;
-    for &FFTResult {
-        freq,
-        abs: radius,
-        arg: phase,
-    } in model.fft_results.iter()
-    {
-        circle_centers.push(center);
-        let current_phase = freq as f32 * model.phase + phase;
-        let next_center = radius * pt2(current_phase.cos(), current_phase.sin()) + center;
-        center = next_center;
+    if !model.round_once {
+        let mut circle_centers: Vec<Vec2> = vec![];
+        let mut center = Vec2::ZERO;
+        for &FFTResult {
+            freq,
+            abs: radius,
+            arg: phase,
+        } in model.fft_results.iter()
+        {
+            circle_centers.push(center);
+            let current_phase = freq as f32 * model.phase + phase;
+            let next_center = radius * pt2(current_phase.cos(), current_phase.sin()) + center;
+            center = next_center;
+        }
+        model.circle_centers = circle_centers;
+        model.actual_orbit.push(center);
+        // model.fg_color = model.fg_color.shift_hue(10.0);
     }
-    model.circle_centers = circle_centers;
-    model.actual_orbit.push(center);
-    // model.fg_color = model.fg_color.shift_hue(10.0);
+    if model.phase <= TAU {
+        // 系の位相を更新
+        model.phase += TAU / model.raw_seq_len as f32;
+    } else {
+        model.round_once = true;
+    }
 }
 
 pub fn view(app: &App, model: &Model, frame: Frame) {
@@ -132,11 +141,13 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
         .weight(4.0)
         .color(STEELBLUE)
         .points(model.shape_points.clone());
-    for (&FFTResult { freq, abs, arg }, &center) in
-        model.fft_results.iter().zip(&model.circle_centers)
-    {
-        let current_phase = freq as f32 * model.phase + arg;
-        draw_phase_circle(&draw, center, abs, current_phase);
+    if !model.round_once {
+        for (&FFTResult { freq, abs, arg }, &center) in
+            model.fft_results.iter().zip(&model.circle_centers)
+        {
+            let current_phase = freq as f32 * model.phase + arg;
+            draw_phase_circle(&draw, center, abs, current_phase);
+        }
     }
     draw.polyline()
         .color(model.fg_color)

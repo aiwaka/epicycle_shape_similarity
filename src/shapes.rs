@@ -52,7 +52,7 @@ pub fn flower() -> ShapePoints {
 }
 
 /// 自治体名をGISデータ内の完全名で与え、境界形状点列データを取得する。
-pub fn municipality_shape(muni_name: &str) -> ShapePoints {
+pub fn municipality_shape(muni_name: &str, result_point_num: usize) -> ShapePoints {
     // 都道府県名と、そのファイル内の欲しい境界データ番号を指定
     // 向日市
     // let (prefecture_name, feature_id) = ("京都府", 354);
@@ -73,6 +73,6 @@ pub fn municipality_shape(muni_name: &str) -> ShapePoints {
         .filter(|feat| geo_feature_props_to_name(&feat.properties) == muni_name)
         .max_by_key(|x| x.geometry.coordinates.len())
         .unwrap();
-    let shape = convert_to_shape(geo_feature, 512);
+    let shape = convert_to_shape(geo_feature, result_point_num);
     normalize_shape(shape)
 }

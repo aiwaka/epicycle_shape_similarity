@@ -11,7 +11,7 @@ pub fn create_shape() -> ShapePoints {
     // rectangle()
     // simple_circle()
     // flower()
-    municipality_shape("京都府与謝郡伊根町")
+    municipality_shape("兵庫県丹波篠山市", 256)
 }
 
 /// 座標点列を複素関数と解釈してFFTを適用する。
