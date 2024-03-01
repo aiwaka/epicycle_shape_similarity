@@ -30,6 +30,7 @@ fn draw_phase_circle(draw: &Draw, center: Vec2, radius: f32, phase: f32) {
 }
 
 struct FFTResult {
+    freq: u32,
     abs: f32,
     arg: f32,
 }
@@ -54,25 +55,35 @@ pub struct Model {
 pub fn model(app: &App) -> Model {
     let _window = app.new_window().view(view).build().unwrap();
     let shape_points = create_shape();
-    let fft_result = fft_points(&shape_points);
+    let mut fft_result = fft_points(&shape_points)
+        .into_iter()
+        .enumerate()
+        .collect::<Vec<_>>();
+    fft_result.sort_by(|(_, a), (_, b)| b.norm().total_cmp(&a.norm()));
+    let fft_result = fft_result;
     let shape_points_vec2 = shape_points
         .iter()
         .map(|c| pt2(c.re as f32, c.im as f32))
         .collect();
     let seq_len = fft_result.len();
+
     let mut fft_results: Vec<FFTResult> = vec![];
     let mut circle_centers: Vec<Vec2> = vec![];
     let mut center = Vec2::ZERO;
-    for &c in fft_result.iter() {
+    for (freq, c) in fft_result.into_iter() {
         let abs = c.norm() as f32 / seq_len as f32;
         let arg = c.arg() as f32;
-        fft_results.push(FFTResult { abs, arg });
+        fft_results.push(FFTResult {
+            freq: freq as u32,
+            abs,
+            arg,
+        });
         circle_centers.push(center);
         center += pt2(c.re as f32, c.im as f32);
     }
     Model {
         _window,
-        fg_color: Hsl::new(0.0, 1.0, 0.3),
+        fg_color: Hsl::new(0.0, 1.0, 0.6),
         seq_len,
         shape_points: shape_points_vec2,
         fft_results,
@@ -83,27 +94,24 @@ pub fn model(app: &App) -> Model {
 }
 
 pub fn update(_app: &App, model: &mut Model, _update: Update) {
-    // model.line_start = model.line_end;
     // 系の位相を更新
     model.phase += TAU / model.seq_len as f32;
     let mut circle_centers: Vec<Vec2> = vec![];
     let mut center = Vec2::ZERO;
-    for (
-        idx,
-        &FFTResult {
-            abs: radius,
-            arg: phase,
-        },
-    ) in model.fft_results.iter().enumerate()
+    for &FFTResult {
+        freq,
+        abs: radius,
+        arg: phase,
+    } in model.fft_results.iter()
     {
         circle_centers.push(center);
-        let current_phase = idx as f32 * model.phase + phase;
+        let current_phase = freq as f32 * model.phase + phase;
         let next_center = radius * pt2(current_phase.cos(), current_phase.sin()) + center;
         center = next_center;
     }
     model.circle_centers = circle_centers;
     model.actual_orbit.push(center);
-    // model.fg_color = model.fg_color.shift_hue(0.5);
+    model.fg_color = model.fg_color.shift_hue(10.0);
 }
 
 pub fn view(app: &App, model: &Model, frame: Frame) {
@@ -114,17 +122,14 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
         .weight(4.0)
         .color(STEELBLUE)
         .points(model.shape_points.clone());
-    for (idx, (&FFTResult { abs, arg }, &center)) in model
-        .fft_results
-        .iter()
-        .zip(&model.circle_centers)
-        .enumerate()
+    for (&FFTResult { freq, abs, arg }, &center) in
+        model.fft_results.iter().zip(&model.circle_centers)
     {
-        let current_phase = idx as f32 * model.phase + arg;
+        let current_phase = freq as f32 * model.phase + arg;
         draw_phase_circle(&draw, center, abs, current_phase);
     }
     draw.polyline()
-        .color(ORANGERED)
+        .color(model.fg_color)
         .weight(2.0)
         .points(model.actual_orbit.clone());
     // let radius = 150.0;
