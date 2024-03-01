@@ -111,7 +111,7 @@ pub fn view(app: &App, model: &Model, frame: Frame) {
     draw.background().color(WHITE);
     // 形状を線で表示
     draw.polyline()
-        .weight(2.0)
+        .weight(4.0)
         .color(STEELBLUE)
         .points(model.shape_points.clone());
     for (idx, (&FFTResult { abs, arg }, &center)) in model
