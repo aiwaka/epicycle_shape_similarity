@@ -1,7 +1,9 @@
 use anyhow::Result;
 use std::fmt::Display;
-use std::fs::File;
+use std::fs::{read_to_string, File};
 use std::io::Write;
+
+use crate::municipalities::serde_models::GeoJson;
 
 #[allow(unused)]
 pub fn output_sequences<T>(filename: &str, data: &[T]) -> Result<()>
@@ -37,4 +39,11 @@ where
         writeln!(file, "{}  {}", x, y)?;
     }
     Ok(())
+}
+
+pub fn read_municipalities_boundary_data() -> Result<GeoJson> {
+    // let json_content = fs::read_to_string("N03-23_26_230101.geojson")?;
+    let json_content = read_to_string("test.geojson")?;
+    let json_obj = serde_json::from_str::<GeoJson>(&json_content)?;
+    Ok(json_obj)
 }

@@ -1,7 +1,10 @@
 mod fft;
 mod graph;
 mod io;
+mod municipalities;
 mod shapes;
+#[cfg(test)]
+mod test;
 
 use graph::model::{model, update};
 
