@@ -6,6 +6,8 @@ use nannou::{
 
 use crate::fft::{create_shape, fft_points};
 
+const LOW_PASS_RATE: f32 = 0.1;
+
 /// 円を描く
 fn draw_circle<C>(draw: &Draw, center: Vec2, radius: f32, fill: bool, color: C)
 where
@@ -38,7 +40,10 @@ struct FFTResult {
 pub struct Model {
     _window: window::Id,
     fg_color: Hsl,
-    // 点列の長さ。変更されない。
+    // もとの点列の長さ。変更されない。
+    raw_seq_len: usize,
+    // 削減後の点列の長さ。変更されない。
+    #[allow(unused)]
     seq_len: usize,
     // 形状を表す点列。変更されない。
     shape_points: Vec<Point2>,
@@ -55,23 +60,27 @@ pub struct Model {
 pub fn model(app: &App) -> Model {
     let _window = app.new_window().view(view).build().unwrap();
     let shape_points = create_shape();
+    // 点の数を計算
+    let raw_seq_len = shape_points.len();
+    let seq_len = (LOW_PASS_RATE * raw_seq_len as f32) as usize;
+    // FFTした上で大きさ降順にソートし、影響の小さい円から指定された割合だけ削る
     let mut fft_result = fft_points(&shape_points)
         .into_iter()
         .enumerate()
         .collect::<Vec<_>>();
     fft_result.sort_by(|(_, a), (_, b)| b.norm().total_cmp(&a.norm()));
-    let fft_result = fft_result;
+    let fft_result = fft_result.into_iter().take(seq_len).collect::<Vec<_>>();
+    // 複素点列で表された形状をVec2に変換しておく
     let shape_points_vec2 = shape_points
-        .iter()
+        .into_iter()
         .map(|c| pt2(c.re as f32, c.im as f32))
         .collect();
-    let seq_len = fft_result.len();
 
     let mut fft_results: Vec<FFTResult> = vec![];
     let mut circle_centers: Vec<Vec2> = vec![];
     let mut center = Vec2::ZERO;
     for (freq, c) in fft_result.into_iter() {
-        let abs = c.norm() as f32 / seq_len as f32;
+        let abs = c.norm() as f32 / raw_seq_len as f32;
         let arg = c.arg() as f32;
         fft_results.push(FFTResult {
             freq: freq as u32,
@@ -84,6 +93,7 @@ pub fn model(app: &App) -> Model {
     Model {
         _window,
         fg_color: Hsl::new(0.0, 1.0, 0.6),
+        raw_seq_len,
         seq_len,
         shape_points: shape_points_vec2,
         fft_results,
@@ -95,7 +105,7 @@ pub fn model(app: &App) -> Model {
 
 pub fn update(_app: &App, model: &mut Model, _update: Update) {
     // 系の位相を更新
-    model.phase += TAU / model.seq_len as f32;
+    model.phase += TAU / model.raw_seq_len as f32;
     let mut circle_centers: Vec<Vec2> = vec![];
     let mut center = Vec2::ZERO;
     for &FFTResult {
